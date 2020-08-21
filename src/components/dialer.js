@@ -3,7 +3,7 @@ import * as Actions from '../actions';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import { Button, Grid, Glyphicon, Row, Col, Panel, FormGroup, FormControl, InputGroup } from 'react-bootstrap';
+import { Button, Grid, Glyphicon, Row, Col, Panel, FormGroup,  FormControl, InputGroup } from 'react-bootstrap';
 import Incall from './incall';
 
 class Dialer extends Component {
@@ -20,20 +20,55 @@ class Dialer extends Component {
         };
         this.state = {
             phone: "demo2",
+            type:"sip",
+            conferenceId : "",
+            gateway: "indiaDomestic",
+            groupId : "",
             incall: false
         }
     }
 
     handleQuickdial(e) {
         console.log(this.state.phone);
+
+        let extraHeaders = [];
+        if( this.state.type ){
+            extraHeaders.push(`CallType: ${this.state.type}`);
+        }
+        if( this.state.type === "pstn" && this.state.gateway ){
+            extraHeaders.push(`Gateway: ${this.state.gateway}`);
+        }
+        if( this.state.type === "conference" && this.state.conferenceId ){
+            extraHeaders.push(`ConferenceId: ${this.state.conferenceId}`);
+        }
+        if( this.state.type === "group" && this.state.groupId ){
+            extraHeaders.push(`GroupId: ${this.state.groupId}`);
+        }
+        
+        this.options.extraHeaders = extraHeaders;
         this.uri = 'sip:' + this.state.phone + '@voice.chatchilla.com';
-        this.state.phone.length > 0 ? this.props.apDial(this.uri, this.options, 'dial') : console.log("No Number to dial");
+        this.state.phone.length > 0 ? this.props.apDial(this.uri, this.options, 'dial' )  : console.log("No Number to dial");
         this.setState({incall : true});
     }
 
     handleInputChange(e) {
         this.setState({ phone: e.target.value });
     }
+    handleGatewayChange(e) {
+        this.setState({ gateway: e.target.value });
+    }
+
+    handleConferenceChange(e) {
+        this.setState({ conferenceId: e.target.value });
+    }
+    handleGroupChange(e) {
+        this.setState({ groupId: e.target.value });
+    }
+    handleTypeChange(e) {
+
+        this.setState({ type: e.target.value });
+    }
+    
 
     render() {
         return (
@@ -50,6 +85,37 @@ class Dialer extends Component {
                                         </InputGroup.Button>
                                     </InputGroup>
                                 </FormGroup>
+                                <FormControl
+                                ref={select => { this.select = select }}
+                                componentClass="select"
+                                disabled={this.state.added}
+                                onChange={this.handleTypeChange.bind(this)}
+                                >
+                                    <option value="sip">SIP/WEB</option>
+                                    <option value="pstn">PSTN</option>
+                                    <option value="conference">Conference</option>
+                                    <option value="group">Group</option>
+                                </FormControl>
+                                { this.state.type === "pstn" && <FormControl
+                                ref={select => { this.select = select }}
+                                componentClass="select"
+                                onChange={this.handleGatewayChange.bind(this)}
+                                disabled={this.state.added}
+                                >
+                                    <option value="indiaDomestic">IndiaDomestic</option>
+                                    <option value="usInternational">UsInternational</option>
+                                </FormControl>
+                                }
+
+                                { this.state.type === "conference" &&
+                                <div>
+                                  <FormControl value={this.state.conferenceId} onChange={this.handleConferenceChange.bind(this)} placeholder="conferenceId" type="text" />
+                                </div>
+                                }
+                                { this.state.type === "group" &&
+                                <div>
+                                  <FormControl value={this.state.groupId} onChange={this.handleGroupChange.bind(this)} placeholder="groupId" type="text" />
+                                </div>}
                             </Col>
                         </Row>
                     </Grid>

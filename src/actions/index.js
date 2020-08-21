@@ -20,7 +20,7 @@ export const apRegister = () => {
     };
 };
 
-export const apDial = (uri, options, dtype) => {
+export const apDial = (uri, options, dtype, mType = "", mGateway="", mConferenceId = "", mGroupId = "") => {
     console.log("Dial Action");
     const type = (dtype === "dial") ? "DIAL" : "QUICK_DIAL";
     return (dispatch) => {
